@@ -42,7 +42,7 @@ class SpineExport(Extension):
                 "skeleton": {"images": self.directory},
                 "bones": [{"name": "root"}],
                 "slots": [],
-                "skins": {"default": {}},
+                "skins": [{"name": "default", "attachment": {}}],
                 "animations": {}
             }
             self.spineBones = self.json['bones']
@@ -61,7 +61,28 @@ class SpineExport(Extension):
             self._alert("Please select a Document")
     
     def getSkin(self, skinName):
-        return self.spineSkins[skinName]
+        for skin in self.spineSkins:
+            if skin['name'] == skinName:
+                return skin
+        return self.spineSkins[0]
+        
+    def getBone(self, boneName):
+        for bone in self.spineBones:
+            if bone['name'] == boneName:
+                return bone
+        return self.spineBones[0]
+        
+    def isBoneExist(self, boneName):
+        for bone in self.spineBones:
+            if bone['name'] == boneName:
+                return True
+        return False
+        
+    def isSlotExist(self, slotName):
+        for slot in self.spineSlots:
+            if slot['name'] == slotName:
+                return True
+        return False
         
     def createDirectoy(self, name):
         if not os.path.exists(self.directory+"/"+name):
@@ -105,14 +126,24 @@ class SpineExport(Extension):
                         rect = child.bounds()
                         newX = rect.left() + rect.width() / 2 - xOffset
                         newY = (- rect.bottom() + rect.height() / 2) - yOffset
-                        self.spineBones.append({
+                        newBoneDict = {
                             'name': newBone,
                             'parent': bone,
                             'x': newX,
                             'y': newY
-                        })
-                        newX = xOffset + newX
-                        newY = yOffset + newY
+                        }
+                        # if newSkin != 'default':
+                            # newBoneDict['skin'] = True
+                        
+                        if self.isBoneExist(newBone) == False:
+                            self.spineBones.append(newBoneDict)
+                            newX = xOffset + newX
+                            newY = yOffset + newY
+                        else:
+                            c_bone = self.getBone(newBone)
+                            newX = xOffset + c_bone['x']
+                            newY = yOffset + c_bone['y']
+                            
                     if self.slotPattern.search(child.name()):
                         newSlotName = self.slotPattern.sub('', child.name()).strip()
                         newSlot = {
@@ -120,11 +151,15 @@ class SpineExport(Extension):
                             'bone': bone,
                             'attachment': None,
                         }
-                        self.spineSlots.append(newSlot)
+                        if self.isSlotExist(newSlotName) == False:
+                            self.spineSlots.append(newSlot)
                            
                     if self.skinPattern.search(child.name()):
                         newSkin = self.skinPattern.sub('', child.name()).strip()
-                        self.spineSkins[newSkin] = {}
+                        self.spineSkins.append({
+                            'name': newSkin,
+                            'attachments':{}
+                        })
                         self.createDirectoy(newSkin)
 
                     self._export(child, directory, newBone, newX, newY, newSlot, newSkin)
@@ -144,7 +179,8 @@ class SpineExport(Extension):
                     'bone': bone,
                     'attachment': name,
                 }
-                self.spineSlots.append(newSlot)
+                if self.isSlotExist(name) == False:
+                    self.spineSlots.append(newSlot)
             else:
                 if not newSlot['attachment']:
                     newSlot['attachment'] = name
@@ -155,9 +191,9 @@ class SpineExport(Extension):
             nameDir = ""
             if skin != "default":
                 nameDir = skin+"/"
-            if slotName not in skinDict:
-                skinDict[slotName] = {}
-            skinDict[slotName][name] = {
+            if slotName not in skinDict['attachments']:
+                skinDict['attachments'][slotName] = {}
+            skinDict['attachments'][slotName][name] = {
                 'name': nameDir+name,
                 'x': rect.left() + rect.width() / 2 - xOffset,
                 'y': (- rect.bottom() + rect.height() / 2) - yOffset,
