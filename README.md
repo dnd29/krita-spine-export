@@ -19,9 +19,9 @@ Supported in Group Layers:
 * (Slot)
 * (Merge)
 * (Ignore)
+* (Skin)
 
 Notes:
-* Skins and subfolders are **not** supported
 * No configuration options
 * Images will be in ``png`` format
 * Both () and [] can be used
