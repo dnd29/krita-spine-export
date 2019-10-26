@@ -1,3 +1,9 @@
+# updates
+Fork from chartinger / krita-unofficial-spine-export for multiple skins, setting root position.
+
+1. Multiple skins can be drawn using skin tag
+2. Root position can be set using Krita's guide.(Using the first guide)
+
 # Unofficial Spine Export
 
 Experimental Krita 4 Python Plugin to export into the Spine JSON format
