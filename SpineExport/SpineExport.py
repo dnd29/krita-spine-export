@@ -51,7 +51,8 @@ class SpineExport(Extension):
 
             Krita.instance().setBatchmode(True)
             self.document = document
-            self._export(document.rootNode(), self.directory)
+            self.setRootPosition()
+            self._export(document.rootNode(), self.directory, xOffset=self.x, yOffset=self.y)
             Krita.instance().setBatchmode(False)
             with open('{0}/{1}'.format(self.directory, 'spine.json'), 'w') as outfile:
                 json.dump(self.json, outfile, indent=2)
@@ -65,7 +66,16 @@ class SpineExport(Extension):
     def createDirectoy(self, name):
         if not os.path.exists(self.directory+"/"+name):
             os.makedirs(self.directory+"/"+name)
-        
+
+    def setRootPosition(self):
+        y = self.document.horizontalGuides()
+        x = self.document.verticalGuides()
+        if len(y) > 0 and len(x) > 0:
+            self.y = -y[0]
+            self.x = x[0]
+        else:
+            self.y = 0
+            self.x = 0
 
     def _alert(self, message):
         self.msgBox = self.msgBox if self.msgBox else QMessageBox()
