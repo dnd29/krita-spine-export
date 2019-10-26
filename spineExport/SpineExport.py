@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QFileDialog, QMessageBox)
 from krita import (Krita, Extension, InfoObject)
 
 
-class UnofficialSpineExport(Extension):
+class SpineExport(Extension):
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -17,12 +17,13 @@ class UnofficialSpineExport(Extension):
         self.bonePattern = re.compile("\(bone\)|\[bone\]", re.IGNORECASE)
         self.mergePattern = re.compile("\(merge\)|\[merge\]", re.IGNORECASE)
         self.slotPattern = re.compile("\(slot\)|\[slot\]", re.IGNORECASE)
+        self.skinPattern = re.compile("\(skin\)|\[skin\]", re.IGNORECASE)
 
     def setup(self):
         pass
 
     def createActions(self, window):
-        action = window.createAction("unofficialspineexportAction", "Export to Spine", "tools/scripts")
+        action = window.createAction("SpineExport", "Export to Spine", "tools/scripts")
         action.triggered.connect(self.exportDocument)
 
     def exportDocument(self):
@@ -46,7 +47,7 @@ class UnofficialSpineExport(Extension):
             }
             self.spineBones = self.json['bones']
             self.spineSlots = self.json['slots']
-            self.spineDefaultSkin = self.json['skins']['default']
+            self.spineSkins = self.json['skins']
 
             Krita.instance().setBatchmode(True)
             self.document = document
@@ -57,13 +58,21 @@ class UnofficialSpineExport(Extension):
             self._alert("Export Successful")
         else:
             self._alert("Please select a Document")
+    
+    def getSkin(self, skinName):
+        return self.spineSkins[skinName]
+        
+    def createDirectoy(self, name):
+        if not os.path.exists(self.directory+"/"+name):
+            os.makedirs(self.directory+"/"+name)
+        
 
     def _alert(self, message):
         self.msgBox = self.msgBox if self.msgBox else QMessageBox()
         self.msgBox.setText(message)
         self.msgBox.exec_()
 
-    def _export(self, node, directory, bone="root", xOffset=0, yOffset=0, slot=None):
+    def _export(self, node, directory, bone="root", xOffset=0, yOffset=0, slot=None, skin="default"):
         for child in node.childNodes():
             if "selectionmask" in child.type():
                 continue
@@ -76,6 +85,7 @@ class UnofficialSpineExport(Extension):
 
             if child.childNodes():
                 if not self.mergePattern.search(child.name()):
+                    newSkin = skin
                     newBone = bone
                     newSlot = slot
                     newX = xOffset
@@ -101,12 +111,20 @@ class UnofficialSpineExport(Extension):
                             'attachment': None,
                         }
                         self.spineSlots.append(newSlot)
+                           
+                    if self.skinPattern.search(child.name()):
+                        newSkin = self.skinPattern.sub('', child.name()).strip()
+                        self.spineSkins[newSkin] = {}
+                        self.createDirectoy(newSkin)
 
-                    self._export(child, directory, newBone, newX, newY, newSlot)
+                    self._export(child, directory, newBone, newX, newY, newSlot, newSkin)
                     continue
 
+            saveDir = directory
+            if skin != "default":
+                saveDir = directory+"/"+skin
             name = self.mergePattern.sub('', child.name()).strip()
-            layerFileName = '{0}/{1}.{2}'.format(directory, name, self.fileFormat)
+            layerFileName = '{0}/{1}.{2}'.format(saveDir, name, self.fileFormat)
             child.save(layerFileName, 96, 96, InfoObject())
 
             newSlot = slot
@@ -123,9 +141,14 @@ class UnofficialSpineExport(Extension):
 
             rect = child.bounds()
             slotName = newSlot['name']
-            if slotName not in self.spineDefaultSkin:
-                self.spineDefaultSkin[slotName] = {}
-            self.spineDefaultSkin[slotName][name] = {
+            skinDict = self.getSkin(skin)
+            nameDir = ""
+            if skin != "default":
+                nameDir = skin+"/"
+            if slotName not in skinDict:
+                skinDict[slotName] = {}
+            skinDict[slotName][name] = {
+                'name': nameDir+name,
                 'x': rect.left() + rect.width() / 2 - xOffset,
                 'y': (- rect.bottom() + rect.height() / 2) - yOffset,
                 'rotation': 0,
@@ -135,5 +158,5 @@ class UnofficialSpineExport(Extension):
 
 
 # And add the extension to Krita's list of extensions:
-Krita.instance().addExtension(UnofficialSpineExport(Krita.instance()))
+Krita.instance().addExtension(SpineExport(Krita.instance()))
 
