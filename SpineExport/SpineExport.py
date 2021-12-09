@@ -42,7 +42,7 @@ class SpineExport(Extension):
                 "skeleton": {"images": self.directory},
                 "bones": [{"name": "root"}],
                 "slots": [],
-                "skins": [{"name": "default", "attachment": {}}],
+                "skins": [{"name": "default", "attachments": {}}],
                 "animations": {}
             }
             self.spineBones = self.json['bones']
@@ -111,7 +111,7 @@ class SpineExport(Extension):
             if not child.visible():
                 continue
 
-            if '(ignore)' in child.name():
+            if 'decorations-wrapper-layer' in child.name() or '(ignore)' in child.name().lower() or '[ignore]' in child.name().lower():
                 continue
 
             if child.childNodes():
@@ -158,7 +158,7 @@ class SpineExport(Extension):
                         newSkin = self.skinPattern.sub('', child.name()).strip()
                         self.spineSkins.append({
                             'name': newSkin,
-                            'attachment':{}
+                            'attachments':{}
                         })
                         self.createDirectoy(newSkin)
 
@@ -191,9 +191,9 @@ class SpineExport(Extension):
             nameDir = ""
             if skin != "default":
                 nameDir = skin+"/"
-            if slotName not in skinDict['attachment']:
-                skinDict['attachment'][slotName] = {}
-            skinDict['attachment'][slotName][name] = {
+            if slotName not in skinDict['attachments']:
+                skinDict['attachments'][slotName] = {}
+            skinDict['attachments'][slotName][name] = {
                 'name': nameDir+name,
                 'x': rect.left() + rect.width() / 2 - xOffset,
                 'y': (- rect.bottom() + rect.height() / 2) - yOffset,
@@ -205,3 +205,4 @@ class SpineExport(Extension):
 
 # And add the extension to Krita's list of extensions:
 Krita.instance().addExtension(SpineExport(Krita.instance()))
+
