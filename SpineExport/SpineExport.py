@@ -158,7 +158,7 @@ class SpineExport(Extension):
                         newSkin = self.skinPattern.sub('', child.name()).strip()
                         self.spineSkins.append({
                             'name': newSkin,
-                            'attachments':{}
+                            'attachment':{}
                         })
                         self.createDirectoy(newSkin)
 
@@ -191,9 +191,9 @@ class SpineExport(Extension):
             nameDir = ""
             if skin != "default":
                 nameDir = skin+"/"
-            if slotName not in skinDict['attachments']:
-                skinDict['attachments'][slotName] = {}
-            skinDict['attachments'][slotName][name] = {
+            if slotName not in skinDict['attachment']:
+                skinDict['attachment'][slotName] = {}
+            skinDict['attachment'][slotName][name] = {
                 'name': nameDir+name,
                 'x': rect.left() + rect.width() / 2 - xOffset,
                 'y': (- rect.bottom() + rect.height() / 2) - yOffset,
@@ -205,4 +205,3 @@ class SpineExport(Extension):
 
 # And add the extension to Krita's list of extensions:
 Krita.instance().addExtension(SpineExport(Krita.instance()))
-
