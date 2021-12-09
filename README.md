@@ -10,7 +10,7 @@ Experimental Krita 4 Python Plugin to export into the Spine JSON format
 
 ## How to install
 
-Copy ``unofficialspineexport.desktop`` and the ``unofficialspineexport`` folder into the ``pykrita`` directory inside the Krita Resource directory. You can find your Resource Directory within Krita via ``Settings > Manage Resources > Open Resource Folder``
+Copy ``SpineExport.desktop`` and the ``SpineExport`` folder into the ``pykrita`` directory inside the Krita Resource directory. You can find your Resource Directory within Krita via ``Settings > Manage Resources > Open Resource Folder``
 
 Restart Krita and make sure the plugin is enabled, which means ``Settings > Configure Krita > Python Plugin manager > Unofficial Spine Export Plugin`` should be checked.
 
